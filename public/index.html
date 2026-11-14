@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>口述修圖</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">口述修圖 <span class="tag">Develop</span></div>
+    <div class="top-actions">
+      <span id="aiStatus" class="status" title="語意理解模式">檢查中…</span>
+      <label class="btn">開啟照片<input id="fileInput" type="file" accept="image/*" hidden /></label>
+      <button id="undoBtn" class="btn" title="復原（Ctrl+Z）" disabled>↶ 復原</button>
+      <button id="redoBtn" class="btn" title="重做（Ctrl+Shift+Z）" disabled>↷ 重做</button>
+      <button id="resetBtn" class="btn" disabled>還原原圖</button>
+      <button id="exportBtn" class="btn primary" disabled>輸出 JPEG</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="left panel">
+      <section>
+        <h2>風格預設</h2>
+        <div id="presets" class="preset-list"></div>
+      </section>
+      <section class="grow">
+        <h2>步驟記錄</h2>
+        <ol id="historyList" class="history"></ol>
+      </section>
+    </aside>
+
+    <section class="center">
+      <div id="viewer" class="viewer">
+        <canvas id="canvas"></canvas>
+        <div id="dropzone" class="dropzone">
+          <div>
+            <p class="big">把照片拖到這裡，或按「開啟照片」</p>
+            <p>接著直接說出想要的感覺，例如：<br />「整體亮一點、天空藍一點、膚色紅潤一點」</p>
+            <p class="fine">只做整體色彩與光影調整：不液化、不瘦臉、不用 AI 生成，臉不會變形。</p>
+          </div>
+        </div>
+        <button id="beforeBtn" class="before-btn" hidden title="按住看原圖（或按住 \ 鍵）">按住看原圖</button>
+        <div id="beforeLabel" class="before-label" hidden>原圖</div>
+      </div>
+
+      <div class="command">
+        <div id="log" class="log" aria-live="polite"></div>
+        <form id="cmdForm" class="cmd-row">
+          <button id="micBtn" type="button" class="mic" title="按一下開始說話">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
+          </button>
+          <input id="cmdInput" type="text" autocomplete="off" placeholder="說出或輸入想調整的地方，例如「陰影提亮一點，整體暖一點」" />
+          <button class="btn primary" type="submit">套用</button>
+        </form>
+        <div id="interim" class="interim"></div>
+      </div>
+    </section>
+
+    <aside class="right panel">
+      <canvas id="histogram" class="histogram" width="256" height="100"></canvas>
+      <div id="sliders"></div>
+    </aside>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

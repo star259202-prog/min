@@ -1,0 +1,13 @@
+{
+  "name": "voice-photo-editor",
+  "version": "1.0.0",
+  "description": "用說的就能修圖的 Lightroom 風格修圖工具（不變形、不 AI 化）",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0"
+  }
+}
