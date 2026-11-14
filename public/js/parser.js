@@ -367,3 +367,60 @@ export function summarize(before, changes, action, notes = []) {
 }
 
 export { HSL_BANDS };
+
+// ---------- 遮罩（局部調整）指令 ----------
+// 例如：「只把天空壓暗一點」「選取膚色，提亮一點」「新增放射狀遮罩」「回到整體調整」
+const REGIONS = [
+  ['sky', /天空|藍天|天色/],
+  ['skin', /膚色|皮膚|肌膚|人臉|臉部|臉/],
+  ['subject', /主體|人物|中間|中央|中心/],
+  ['edges', /四周|周圍|邊緣|四個角|角落/],
+  ['bottom', /下半部|地面|前景|下方|底部/],
+  ['top', /上半部|上方|頂部/],
+  ['left', /左半部|左邊|左側/],
+  ['right', /右半部|右邊|右側/],
+  ['highlightsArea', /亮部區域|亮的區域|亮的地方|明亮的地方/],
+  ['shadowsArea', /暗部區域|暗的區域|暗的地方|陰暗的地方/],
+];
+const SHAPES = [
+  ['brush', /筆刷/],
+  ['linear', /線性漸層|線性|漸層/],
+  ['radial', /放射狀|放射|圓形|橢圓/],
+  ['color', /顏色範圍|色彩範圍/],
+  ['luminance', /明度範圍|亮度範圍/],
+];
+const MASK_TRIGGER = /遮罩|選取|框選|只(?:調|修|改|把|讓|將|針對|有|要)?|針對|局部|單獨/;
+
+export function parseMaskIntent(text) {
+  let rest = text;
+  const out = { create: null, exit: false, remove: false, invert: false, overlay: null, rest: text };
+  const take = (re) => {
+    const m = rest.match(re);
+    if (!m) return null;
+    rest = rest.replace(m[0], ' ');
+    return m;
+  };
+  if (take(/(離開|結束|關閉|退出|完成)(遮罩|局部)(模式|調整)?|回到(整體|全圖|整張)(調整)?|整體調整|全圖調整|取消選取/)) out.exit = true;
+  if (take(/(刪除|移除|刪掉)(這個|目前的?|此)?遮罩/)) out.remove = true;
+  if (take(/反轉(遮罩|選取|範圍)?|反向選取/)) out.invert = true;
+  if (take(/(隱藏|關閉|不要)(遮罩)?(疊加|紅色)/)) out.overlay = false;
+  else if (take(/(顯示|看一下|看看)遮罩(範圍)?|遮罩疊加/)) out.overlay = true;
+
+  const hasTrigger = MASK_TRIGGER.test(rest);
+  if (/遮罩/.test(rest) || /新增|建立/.test(rest)) {
+    for (const [kind, re] of SHAPES) {
+      if (re.test(rest)) { out.create = kind; take(re); break; }
+    }
+  }
+  if (!out.create && hasTrigger) {
+    for (const [kind, re] of REGIONS) {
+      if (re.test(rest)) { out.create = kind; take(re); break; }
+    }
+  }
+  if (out.create) {
+    rest = rest.replace(/(新增|建立|加上?|做)(一個)?|遮罩|選取|框選|只(?:調|修|改|把|讓|將|針對|有|要)?|針對|局部|單獨|的部分|的地方|區域|這塊/g, ' ');
+  }
+  out.rest = rest.replace(/\s+/g, ' ').trim();
+  out.any = Boolean(out.create || out.exit || out.remove || out.invert || out.overlay !== null);
+  return out;
+}

@@ -83,3 +83,27 @@ test('結果都在參數範圍內', () => {
 test('聽不懂時回報 understood=false', () => {
   assert.equal(run('今天天氣如何').understood, false);
 });
+
+import { parseMaskIntent } from '../public/js/parser.js';
+
+test('遮罩：建立區域遮罩並保留剩下的調整指令', () => {
+  const r = parseMaskIntent('只把天空壓暗一點');
+  assert.equal(r.create, 'sky');
+  assert.equal(sign(run(r.rest).changes.exposure), -1);
+  assert.equal(parseMaskIntent('選取膚色，提亮一點').create, 'skin');
+  assert.equal(parseMaskIntent('針對四周暗一點').create, 'edges');
+  assert.equal(parseMaskIntent('新增放射狀遮罩').create, 'radial');
+  assert.equal(parseMaskIntent('加一個筆刷遮罩').create, 'brush');
+});
+
+test('遮罩：沒有「只／選取／遮罩」等字眼時維持整體調整', () => {
+  assert.equal(parseMaskIntent('天空藍一點').create, null);
+  assert.equal(parseMaskIntent('四周暗一點').create, null);
+});
+
+test('遮罩：離開、刪除、反轉、疊加', () => {
+  assert.ok(parseMaskIntent('回到整體調整').exit);
+  assert.ok(parseMaskIntent('刪除這個遮罩').remove);
+  assert.ok(parseMaskIntent('反轉遮罩').invert);
+  assert.equal(parseMaskIntent('顯示遮罩').overlay, true);
+});
